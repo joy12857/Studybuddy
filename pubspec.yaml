@@ -1,0 +1,61 @@
+name: study_buddy
+description: StudyBuddy Student Wellness and Academic Application
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Supabase
+  supabase_flutter: ^2.9.1
+
+  # State Management
+  provider: ^6.1.5
+
+  # Networking
+  http: ^1.5.0
+
+  # Storage
+  shared_preferences: ^2.5.3
+
+  # Charts
+  fl_chart: ^1.1.1
+
+  # Date Formatting
+  intl: ^0.20.2
+
+  # UUID
+  uuid: ^4.5.1
+
+  # URL Launcher
+  url_launcher: ^6.3.1
+
+  # UI
+  google_fonts: ^6.3.1
+  flutter_svg: ^2.2.0
+  font_awesome_flutter: ^10.10.0
+
+  # Audio
+  audioplayers: ^6.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
