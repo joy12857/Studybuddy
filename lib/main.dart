@@ -7,6 +7,7 @@ import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/reset_password_screen.dart';
+import 'services/profile_sync_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +60,20 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   @override
+  void initState() {
+    super.initState();
+    // Sync profile to local storage on app start if already logged in
+    _syncOnStart();
+  }
+
+  Future<void> _syncOnStart() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      await ProfileSyncService.syncProfileToLocal(user);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final session = Supabase.instance.client.auth.currentSession;
 
@@ -79,6 +94,11 @@ class _AuthGateState extends State<AuthGate> {
             return const HomeScreen();
           }
           return const _SplashScreen();
+        }
+
+        // Sync profile when user signs in via auth state change
+        if (event == AuthChangeEvent.signedIn && authState?.session?.user != null) {
+          ProfileSyncService.syncProfileToLocal(authState!.session!.user);
         }
 
         final hasSession = authState?.session != null;

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 //import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
+import '../services/profile_sync_service.dart';
 import '../widgets/interactive_animations.dart';
 import 'academic_onboarding_screen.dart';
 
@@ -175,7 +176,15 @@ class _EmailVerifyScreenState extends State<EmailVerifyScreen> {
   // Go to Home
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _goHome() {
+  void _goHome() async {
+    if (!mounted) return;
+
+    // Sync name & dept from user metadata to SharedPreferences
+    final user = _authService.currentUser;
+    if (user != null) {
+      await ProfileSyncService.syncProfileToLocal(user);
+    }
+
     if (!mounted) return;
 
     Navigator.pushAndRemoveUntil(

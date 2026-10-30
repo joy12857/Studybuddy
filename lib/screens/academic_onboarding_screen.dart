@@ -224,6 +224,15 @@ class _AcademicOnboardingScreenState extends State<AcademicOnboardingScreen> {
 
       // 1. Save to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
+
+      // Persist name from user metadata so profile screen shows it immediately
+      if (user != null) {
+        final meta = user.userMetadata;
+        if (meta != null && meta['full_name'] != null && meta['full_name'].toString().isNotEmpty) {
+          await prefs.setString('user_name', meta['full_name'].toString());
+        }
+      }
+
       await prefs.setString('user_dept', dept);
       await prefs.setString('user_semester', selectedSemester);
       await prefs.setString('user_current_cgpa', currentCgpa);

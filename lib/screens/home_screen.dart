@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/theme_provider.dart';
 import '../services/auth_service.dart';
@@ -58,24 +59,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadProfile() async {
     try {
+      // Load from local cache first (instant display)
+      final prefs = await SharedPreferences.getInstance();
+      final localName = prefs.getString('user_name');
+      if (localName != null && localName.isNotEmpty && mounted) {
+        setState(() { fullName = localName; });
+      }
+
+      // Then try Supabase for the most up-to-date name
       final user = auth.currentUser;
       if (user != null) {
-        final data = await SupabaseService.client
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .maybeSingle();
-        if (data != null && data['full_name'] != null) {
-          setState(() {
-            fullName = data['full_name'];
-          });
+        // Also check user metadata from registration
+        final meta = user.userMetadata;
+        if (fullName == null && meta != null && meta['full_name'] != null && meta['full_name'].toString().isNotEmpty) {
+          if (mounted) setState(() { fullName = meta['full_name'].toString(); });
         }
+
+        try {
+          final data = await SupabaseService.client
+              .from('profiles')
+              .select('full_name')
+              .eq('id', user.id)
+              .maybeSingle();
+          if (data != null && data['full_name'] != null && data['full_name'].toString().isNotEmpty) {
+            final name = data['full_name'].toString();
+            await prefs.setString('user_name', name);
+            if (mounted) setState(() { fullName = name; });
+          }
+        } catch (_) {}
       }
     } catch (_) {}
     if (mounted) {
-      setState(() {
-        isProfileLoading = false;
-      });
+      setState(() { isProfileLoading = false; });
     }
   }
 

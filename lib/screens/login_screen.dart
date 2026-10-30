@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/auth_service.dart';
+import '../services/profile_sync_service.dart';
 import '../widgets/interactive_animations.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -31,10 +34,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await authService.signIn(
+      final response = await authService.signIn(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+
+      // Sync full profile from Supabase → SharedPreferences
+      if (response.user != null) {
+        await ProfileSyncService.syncProfileToLocal(response.user!);
+      }
 
       if (!mounted) return;
 
@@ -197,9 +205,25 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         bool isVerifying = false;
+        bool isResending = false;
+        int resendCountdown = 60;
+        Timer? countdownTimer;
+
+        void startCountdown(StateSetter setModalState) {
+          countdownTimer?.cancel();
+          resendCountdown = 60;
+          countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+            if (!ctx.mounted) { t.cancel(); return; }
+            setModalState(() {
+              if (resendCountdown > 0) { resendCountdown--; } else { t.cancel(); }
+            });
+          });
+        }
 
         return StatefulBuilder(
           builder: (dialogCtx, setModalState) {
+            if (countdownTimer == null) startCountdown(setModalState);
+
             return AlertDialog(
               backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -207,12 +231,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Icon(Icons.mark_email_read_rounded, color: Color(0xFF0F766E)),
                   const SizedBox(width: 10),
-                  Text(
-                    "Enter 6-Digit Code",
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: const Color(0xFF0F766E),
+                  Expanded(
+                    child: Text(
+                      "Enter 6-Digit Code",
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: const Color(0xFF0F766E),
+                      ),
                     ),
                   ),
                 ],
@@ -245,11 +271,115 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: Icon(Icons.security_rounded),
                     ),
                   ),
+                  const SizedBox(height: 14),
+
+                  // ── Resend row ─────────────────────────────────────────
+                  Center(
+                    child: isResending
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(
+                                width: 13,
+                                height: 13,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Color(0xFF0F766E)),
+                              ),
+                              const SizedBox(width: 8),
+                              Text("Sending new code…",
+                                  style: GoogleFonts.outfit(
+                                      fontSize: 13, color: const Color(0xFF0F766E))),
+                            ],
+                          )
+                        : resendCountdown > 0
+                            ? RichText(
+                                text: TextSpan(
+                                  style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      color: isDark
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade600),
+                                  children: [
+                                    const TextSpan(text: "Didn't get a code? "),
+                                    TextSpan(
+                                      text: "Resend in ${resendCountdown}s",
+                                      style: GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey.shade400),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : GestureDetector(
+                                onTap: () async {
+                                  setModalState(() => isResending = true);
+                                  try {
+                                    await authService.resetPassword(email);
+                                    otpCtrl.clear();
+                                    if (!mounted) return;
+                                    if (ctx.mounted) {
+                                      setModalState(() => isResending = false);
+                                      startCountdown(setModalState);
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12)),
+                                        backgroundColor: const Color(0xFF0F766E),
+                                        content: Text("New code sent to $email",
+                                            style: GoogleFonts.outfit(color: Colors.white)),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    setModalState(() => isResending = false);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12)),
+                                        backgroundColor: Colors.red.shade800,
+                                        content: Text(
+                                            e.toString().replaceFirst("Exception: ", ""),
+                                            style: GoogleFonts.outfit(color: Colors.white)),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: GoogleFonts.outfit(
+                                        fontSize: 13,
+                                        color: isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600),
+                                    children: [
+                                      const TextSpan(text: "Didn't get a code? "),
+                                      TextSpan(
+                                        text: "Resend Code",
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF0F766E),
+                                          decoration: TextDecoration.underline,
+                                          decorationColor: const Color(0xFF0F766E),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                  ),
                 ],
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(dialogCtx),
+                  onPressed: () {
+                    countdownTimer?.cancel();
+                    Navigator.pop(dialogCtx);
+                  },
                   child: Text("Cancel", style: GoogleFonts.outfit(color: Colors.grey)),
                 ),
                 ElevatedButton(
@@ -276,10 +406,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           setModalState(() => isVerifying = true);
                           try {
                             await authService.verifyRecoveryOTP(email: email, token: code);
+                            countdownTimer?.cancel();
                             if (!mounted) return;
-                            if (dialogCtx.mounted) {
-                              Navigator.pop(dialogCtx);
-                            }
+                            if (dialogCtx.mounted) Navigator.pop(dialogCtx);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 behavior: SnackBarBehavior.floating,
