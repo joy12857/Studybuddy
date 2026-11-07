@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/auth_service.dart';
+import '../utils/validators.dart';
+import '../widgets/auth_requirements_segment.dart';
 import 'email_otp_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -252,22 +254,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               labelText: 'Email Address',
                               prefixIcon: Icon(Icons.email_outlined),
                             ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your email';
-                              }
-
-                              if (!RegExp(
-                                r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$',
-                              ).hasMatch(value.trim())) {
-                                return 'Please enter a valid email address';
-                              }
-
-                              return null;
-                            },
+                            validator: AuthValidators.validateEmail,
                           ),
 
-                          const SizedBox(height: 16),
+                          ListenableBuilder(
+                            listenable: emailController,
+                            builder: (context, _) => EmailRequirementSegment(
+                              email: emailController.text,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
 
                           TextFormField(
                             controller: passwordController,
@@ -290,16 +287,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 },
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.length < 6) {
-                                return 'Password must be at least 6 characters';
-                              }
-
-                              return null;
-                            },
+                            validator: AuthValidators.validatePassword,
                           ),
 
-                          const SizedBox(height: 16),
+                          ListenableBuilder(
+                            listenable: passwordController,
+                            builder: (context, _) => PasswordRequirementsSegment(
+                              password: passwordController.text,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
 
                           TextFormField(
                             controller: confirmPasswordController,
@@ -326,7 +324,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Please confirm your password';
                               }
-
+                              if (value != passwordController.text) {
+                                return 'Passwords do not match';
+                              }
                               return null;
                             },
                           ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/auth_service.dart';
+import '../utils/validators.dart';
+import '../widgets/auth_requirements_segment.dart';
 import '../widgets/interactive_animations.dart';
 import 'home_screen.dart';
 
@@ -154,14 +156,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             onPressed: () => setState(() => obscureNewPassword = !obscureNewPassword),
                           ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().length < 6) {
-                            return "Password must be at least 6 characters long.";
-                          }
-                          return null;
-                        },
+                        validator: AuthValidators.validatePassword,
                       ),
-                      const SizedBox(height: 16),
+                      ListenableBuilder(
+                        listenable: newPasswordController,
+                        builder: (context, _) => PasswordRequirementsSegment(
+                          password: newPasswordController.text,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: confirmPasswordController,
                         obscureText: obscureConfirmPassword,
@@ -179,6 +182,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return "Please confirm your new password.";
+                          }
+                          if (value.trim() != newPasswordController.text.trim()) {
+                            return "Passwords do not match.";
                           }
                           return null;
                         },

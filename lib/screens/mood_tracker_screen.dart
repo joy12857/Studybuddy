@@ -64,19 +64,25 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
               "id": "1",
               "mood": "😊 Happy",
               "note": "Had an awesome coding session today!",
-              "created_at": DateTime.now().subtract(const Duration(hours: 3)).toIso8601String(),
+              "created_at": DateTime.now()
+                  .subtract(const Duration(hours: 3))
+                  .toIso8601String(),
             },
             {
               "id": "2",
               "mood": "🙂 Calm",
               "note": "Practiced breathing exercises.",
-              "created_at": DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+              "created_at": DateTime.now()
+                  .subtract(const Duration(days: 1))
+                  .toIso8601String(),
             },
             {
               "id": "3",
               "mood": "😰 Stressed",
               "note": "Studying for midterms, feeling overwhelmed.",
-              "created_at": DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+              "created_at": DateTime.now()
+                  .subtract(const Duration(days: 2))
+                  .toIso8601String(),
             },
           ];
         });
@@ -92,7 +98,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
 
   Future<void> saveMood() async {
     setState(() {
-      isLoading = true;
+      isLoading = false;
     });
 
     final selected = moods[selectedMoodIndex];
@@ -117,9 +123,14 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           backgroundColor: const Color(0xFF0F766E),
-          content: Text("Mood saved successfully!", style: GoogleFonts.outfit()),
+          content: Text(
+            "Mood saved successfully!",
+            style: GoogleFonts.outfit(),
+          ),
         ),
       );
 
@@ -140,9 +151,14 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             backgroundColor: Colors.teal.shade800,
-            content: Text("Logged successfully (offline)", style: GoogleFonts.outfit()),
+            content: Text(
+              "Logged successfully (offline)",
+              style: GoogleFonts.outfit(),
+            ),
           ),
         );
       }
@@ -168,7 +184,9 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Text("Deleted log locally", style: GoogleFonts.outfit()),
         ),
       );
@@ -264,10 +282,14 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                 border: Border.all(color: Theme.of(context).dividerColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.02),
+                    color: Colors.black.withValues(
+                      alpha: Theme.of(context).brightness == Brightness.dark
+                          ? 0.2
+                          : 0.02,
+                    ),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ],
               ),
               child: Column(
@@ -286,12 +308,13 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.1,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.1,
+                        ),
                     itemCount: moods.length,
                     itemBuilder: (context, index) {
                       final m = moods[index];
@@ -307,10 +330,14 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                         borderRadius: BorderRadius.circular(16),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isSelected ? moodColor.withValues(alpha: 0.1) : Colors.grey.shade50,
+                            color: isSelected
+                                ? moodColor.withValues(alpha: 0.1)
+                                : Colors.grey.shade50,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected ? moodColor : Colors.grey.shade200,
+                              color: isSelected
+                                  ? moodColor
+                                  : Colors.grey.shade200,
                               width: isSelected ? 2 : 1,
                             ),
                           ),
@@ -326,8 +353,12 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                                 m["label"],
                                 style: GoogleFonts.outfit(
                                   fontSize: 13,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: isSelected ? moodColor : Colors.grey.shade600,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? moodColor
+                                      : Colors.grey.shade600,
                                 ),
                               ),
                             ],
@@ -358,11 +389,17 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                           ? const SizedBox(
                               height: 24,
                               width: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
                             )
                           : Text(
                               "Log Mood",
-                              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                     ),
                   ),
@@ -383,7 +420,12 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
             const SizedBox(height: 12),
             Container(
               height: 200,
-              padding: const EdgeInsets.only(right: 20, left: 10, top: 20, bottom: 10),
+              padding: const EdgeInsets.only(
+                right: 20,
+                left: 10,
+                top: 20,
+                bottom: 10,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(24),
@@ -393,7 +435,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                     color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ],
               ),
               child: LineChart(
@@ -401,8 +443,12 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                   gridData: const FlGridData(show: false),
                   titlesData: FlTitlesData(
                     show: true,
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -411,15 +457,30 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                         getTitlesWidget: (val, meta) {
                           switch (val.toInt()) {
                             case 1:
-                              return Text("😢", style: GoogleFonts.outfit(fontSize: 14));
+                              return Text(
+                                "😢",
+                                style: GoogleFonts.outfit(fontSize: 14),
+                              );
                             case 2:
-                              return Text("😔", style: GoogleFonts.outfit(fontSize: 14));
+                              return Text(
+                                "😔",
+                                style: GoogleFonts.outfit(fontSize: 14),
+                              );
                             case 3:
-                              return Text("😐", style: GoogleFonts.outfit(fontSize: 14));
+                              return Text(
+                                "😐",
+                                style: GoogleFonts.outfit(fontSize: 14),
+                              );
                             case 4:
-                              return Text("🙂", style: GoogleFonts.outfit(fontSize: 14));
+                              return Text(
+                                "🙂",
+                                style: GoogleFonts.outfit(fontSize: 14),
+                              );
                             case 5:
-                              return Text("😊", style: GoogleFonts.outfit(fontSize: 14));
+                              return Text(
+                                "😊",
+                                style: GoogleFonts.outfit(fontSize: 14),
+                              );
                           }
                           return const Text("");
                         },
@@ -431,17 +492,30 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
                         reservedSize: 22,
                         interval: 1,
                         getTitlesWidget: (val, meta) {
-                          final days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                          final days = [
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri",
+                            "Sat",
+                            "Sun",
+                          ];
                           // Center current day at end
                           int index = val.toInt();
-                          if (index < 0 || index >= days.length) return const Text("");
+                          if (index < 0 || index >= days.length) {
+                            return const Text("");
+                          }
                           // Dynamic days based on last 7 calendar days
                           final dayName = DateFormat('E').format(
                             DateTime.now().subtract(Duration(days: 6 - index)),
                           );
                           return Text(
                             dayName,
-                            style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey.shade500),
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                            ),
                           );
                         },
                       ),
@@ -484,81 +558,99 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
             isHistoryLoading
                 ? const Center(child: CircularProgressIndicator())
                 : loggedMoods.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Text(
-                            "No mood logs yet. Let's record how you feel!",
-                            style: GoogleFonts.outfit(color: Colors.grey.shade500),
-                          ),
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Text(
+                        "No mood logs yet. Let's record how you feel!",
+                        style: GoogleFonts.outfit(color: Colors.grey.shade500),
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: loggedMoods.length,
+                    itemBuilder: (context, index) {
+                      final log = loggedMoods[index];
+                      final id = log["id"];
+                      final mood = log["mood"] as String? ?? "😐 Neutral";
+                      final note = log["note"] as String? ?? "";
+                      final createdAt = log["created_at"] as String?;
+
+                      String displayTime = "Just now";
+                      if (createdAt != null) {
+                        final parsedDate = DateTime.tryParse(createdAt);
+                        if (parsedDate != null) {
+                          displayTime = DateFormat(
+                            'MMM dd, hh:mm a',
+                          ).format(parsedDate.toLocal());
+                        }
+                      }
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.shade100),
                         ),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: loggedMoods.length,
-                        itemBuilder: (context, index) {
-                          final log = loggedMoods[index];
-                          final id = log["id"];
-                          final mood = log["mood"] as String? ?? "😐 Neutral";
-                          final note = log["note"] as String? ?? "";
-                          final createdAt = log["created_at"] as String?;
-
-                          String displayTime = "Just now";
-                          if (createdAt != null) {
-                            final parsedDate = DateTime.tryParse(createdAt);
-                            if (parsedDate != null) {
-                              displayTime = DateFormat('MMM dd, hh:mm a').format(parsedDate.toLocal());
-                            }
-                          }
-
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: BorderSide(color: Colors.grey.shade100),
+                        color: Colors.white,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: CircleAvatar(
+                            radius: 24,
+                            backgroundColor: const Color(
+                              0xFF0F766E,
+                            ).withValues(alpha: 0.08),
+                            child: Text(
+                              mood.split(' ').first,
+                              style: const TextStyle(fontSize: 24),
                             ),
-                            color: Colors.white,
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              leading: CircleAvatar(
-                                radius: 24,
-                                backgroundColor: const Color(0xFF0F766E).withValues(alpha: 0.08),
-                                child: Text(
-                                  mood.split(' ').first,
-                                  style: const TextStyle(fontSize: 24),
+                          ),
+                          title: Text(
+                            mood.split(' ').sublist(1).join(' '),
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (note.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  note,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 6),
+                              Text(
+                                displayTime,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade400,
                                 ),
                               ),
-                              title: Text(
-                                mood.split(' ').sublist(1).join(' '),
-                                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (note.isNotEmpty) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      note,
-                                      style: GoogleFonts.outfit(color: Colors.grey.shade700),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    displayTime,
-                                    style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade400),
-                                  ),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: Icon(Icons.delete_outline_rounded, color: Colors.red.shade400),
-                                onPressed: () => deleteMood(id),
-                              ),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.red.shade400,
                             ),
-                          );
-                        },
-                      ),
+                            onPressed: () => deleteMood(id),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ],
         ),
       ),

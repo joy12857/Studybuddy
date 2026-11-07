@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/openai_service.dart';
 import '../widgets/interactive_animations.dart';
@@ -133,6 +134,216 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       isCustomizerExpanded = true;
     });
     _openai.clearHistory();
+  }
+
+  Future<void> _showApiKeyDialog() async {
+    final currentKey = await OpenAIService.getActiveApiKey();
+    final keyController = TextEditingController(
+      text: currentKey == 'YOUR_GROQ_API_KEY_HERE' ? '' : currentKey,
+    );
+    bool obscure = true;
+    bool isTesting = false;
+    String? statusMessage;
+    bool? isSuccess;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogCtx, setModalState) {
+          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+
+          return AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F766E).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.vpn_key_rounded, color: Color(0xFF0F766E), size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Groq API Key Settings",
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: isDark ? Colors.white : const Color(0xFF0F766E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "StudyBuddy uses Groq's high-speed Llama 3.3 model for instant AI tutoring.",
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final uri = Uri.parse("https://console.groq.com/keys");
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.open_in_new_rounded, size: 16, color: Color(0xFF0284C7)),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              "Get free Groq key (console.groq.com)",
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                color: const Color(0xFF0284C7),
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: keyController,
+                    obscureText: obscure,
+                    style: GoogleFonts.outfit(fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: "Groq API Key (starts with gsk_)",
+                      hintText: "gsk_...",
+                      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          size: 20,
+                        ),
+                        onPressed: () => setModalState(() => obscure = !obscure),
+                      ),
+                    ),
+                  ),
+                  if (statusMessage != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: (isSuccess == true ? Colors.green : Colors.red)
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSuccess == true
+                                ? Icons.check_circle_rounded
+                                : Icons.error_outline_rounded,
+                            color: isSuccess == true ? Colors.green : Colors.red,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              statusMessage!,
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                color: isSuccess == true ? Colors.green.shade800 : Colors.red.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: Text("Close", style: GoogleFonts.outfit(color: Colors.grey)),
+              ),
+              OutlinedButton(
+                onPressed: isTesting
+                    ? null
+                    : () async {
+                        final entered = keyController.text.trim();
+                        if (entered.isEmpty) {
+                          setModalState(() {
+                            statusMessage = "Please enter an API key to test.";
+                            isSuccess = false;
+                          });
+                          return;
+                        }
+                        setModalState(() {
+                          isTesting = true;
+                          statusMessage = null;
+                        });
+                        final testResult = await OpenAIService.testApiKey(entered);
+                        setModalState(() {
+                          isTesting = false;
+                          isSuccess = testResult['success'] as bool;
+                          statusMessage = testResult['message'] as String;
+                        });
+                      },
+                child: isTesting
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text("Test Key", style: GoogleFonts.outfit()),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F766E),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  final keyToSave = keyController.text.trim();
+                  if (keyToSave.isEmpty) {
+                    await OpenAIService.clearApiKey();
+                  } else {
+                    await OpenAIService.saveApiKey(keyToSave);
+                  }
+                  if (dialogCtx.mounted) {
+                    Navigator.pop(dialogCtx);
+                  }
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: const Color(0xFF0F766E),
+                        content: Text(
+                          keyToSave.isEmpty
+                              ? "Groq API key cleared. Using local smart engine."
+                              : "Groq API key saved successfully!",
+                          style: GoogleFonts.outfit(color: Colors.white),
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Text("Save", style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _generateStudySuggestions() async {
@@ -531,6 +742,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.vpn_key_rounded),
+            tooltip: "Groq API Key Settings",
+            onPressed: _showApiKeyDialog,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: "New conversation",
             onPressed: _clearChat,
@@ -554,7 +770,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Powered by Google Gemini AI · Not a replacement for professional therapy.",
+                    "Powered by Groq Cloud AI (Qwen / Llama) · Tap 🔑 at top to manage your API key.",
                     style: GoogleFonts.outfit(fontSize: 12, color: theme.brightness == Brightness.dark ? const Color(0xFF7DD3FC) : const Color(0xFF0369A1)),
                   ),
                 ),

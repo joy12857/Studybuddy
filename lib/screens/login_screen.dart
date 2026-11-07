@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../services/auth_service.dart';
 import '../services/profile_sync_service.dart';
+import '../utils/validators.dart';
+import '../widgets/auth_requirements_segment.dart';
 import '../widgets/interactive_animations.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -609,19 +611,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                 labelText: "Email Address",
                                 prefixIcon: Icon(Icons.email_outlined),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Please enter your email";
+                              validator: AuthValidators.validateEmail,
+                            ),
+                            ListenableBuilder(
+                              listenable: emailController,
+                              builder: (context, _) {
+                                if (emailController.text.trim().isEmpty) {
+                                  return const SizedBox.shrink();
                                 }
-                                if (!RegExp(
-                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                ).hasMatch(value)) {
-                                  return "Please enter a valid email address";
-                                }
-                                return null;
+                                return EmailRequirementSegment(
+                                  email: emailController.text,
+                                );
                               },
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             // Password text field
                             TextFormField(
                               controller: passwordController,
@@ -646,7 +649,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.length < 6) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter your password";
+                                }
+                                if (value.length < 6) {
                                   return "Password must be at least 6 characters";
                                 }
                                 return null;
